@@ -10,20 +10,44 @@ export async function POST(req: NextRequest) {
     }
 
     const fileName = file.name.toLowerCase();
+    console.log(`Parsing file: ${file.name} (${file.size} bytes)`);
     const buffer = Buffer.from(await file.arrayBuffer());
+    console.log("Buffer created successfully");
 
     if (fileName.endsWith(".pdf")) {
-      const { PDFParse } = await import("pdf-parse");
-      const parser = new PDFParse({ data: buffer });
-      const result = await parser.getText();
-      await parser.destroy();
-      return NextResponse.json({ text: result.text, fileName: file.name });
+      try {
+        console.log("Starting PDF parse...");
+        const { PDFParse } = await import("pdf-parse");
+        console.log("PDFParse class loaded");
+        const parser = new PDFParse({ data: buffer });
+        console.log("Parser instance created");
+        const result = await parser.getText();
+        console.log("Text extraction successful");
+        await parser.destroy();
+        return NextResponse.json({ text: result.text, fileName: file.name });
+      } catch (err) {
+        console.error("PDF parse specific error:", err);
+        return NextResponse.json(
+          { error: `Failed to parse PDF: ${err instanceof Error ? err.message : String(err)}` },
+          { status: 500 }
+        );
+      }
     }
 
     if (fileName.endsWith(".docx")) {
-      const mammoth = await import("mammoth");
-      const result = await mammoth.extractRawText({ buffer });
-      return NextResponse.json({ text: result.value, fileName: file.name });
+      try {
+        console.log("Starting DOCX parse...");
+        const mammoth = await import("mammoth");
+        const result = await mammoth.extractRawText({ buffer });
+        console.log("DOCX extraction successful");
+        return NextResponse.json({ text: result.value, fileName: file.name });
+      } catch (err) {
+        console.error("DOCX parse specific error:", err);
+        return NextResponse.json(
+          { error: `Failed to parse DOCX: ${err instanceof Error ? err.message : String(err)}` },
+          { status: 500 }
+        );
+      }
     }
 
     return NextResponse.json(
@@ -31,9 +55,9 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   } catch (error) {
-    console.error("Parse error:", error);
+    console.error("Global parse error:", error);
     return NextResponse.json(
-      { error: "Failed to parse file. Please try again." },
+      { error: `Failed to parse file: ${error instanceof Error ? error.message : String(error)}` },
       { status: 500 }
     );
   }
