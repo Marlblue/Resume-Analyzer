@@ -86,15 +86,41 @@ export default function Home() {
     if (!result) return;
 
     const html = generateReportHTML(result);
-    const printWindow = window.open("", "_blank");
-    if (printWindow) {
-      printWindow.document.write(html);
-      printWindow.document.close();
+    
+    // Gunakan iframe tersembunyi agar URL tidak about:blank saat print/save PDF
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "absolute";
+    iframe.style.left = "-10000px";
+    iframe.style.top = "-10000px";
+    iframe.style.width = "100%";
+    iframe.style.height = "100%";
+    iframe.style.border = "none";
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow?.document;
+    if (doc) {
+      doc.open();
+      doc.write(html);
+      doc.close();
+
       setTimeout(() => {
-        printWindow.print();
+        // Simpan title asli dan ubah sementara untuk nama file PDF
+        const originalTitle = document.title;
+        const safeFileName = fileName ? fileName.replace(/\.[^/.]+$/, "") : "Resume";
+        document.title = `Analysis_${safeFileName}`;
+
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+
+        // Kembalikan title asli setelah dialog print ditutup
+        document.title = originalTitle;
+
+        setTimeout(() => {
+          document.body.removeChild(iframe);
+        }, 1000);
       }, 500);
     }
-  }, [result]);
+  }, [result, fileName]);
 
   const handleReset = useCallback(() => {
     setState("idle");
