@@ -11,6 +11,18 @@ export async function POST(req: NextRequest) {
 
     const fileName = file.name.toLowerCase();
     console.log(`Parsing file: ${file.name} (${file.size} bytes)`);
+
+    // Polyfill DOMMatrix for pdf-parse (needed by pdfjs-dist in Node.js)
+    if (typeof global !== "undefined" && !global.DOMMatrix) {
+      try {
+        const { DOMMatrix } = await import("@napi-rs/canvas");
+        (global as any).DOMMatrix = DOMMatrix;
+        console.log("DOMMatrix polyfilled successfully");
+      } catch (e) {
+        console.warn("Failed to polyfill DOMMatrix from @napi-rs/canvas:", e);
+      }
+    }
+
     const buffer = Buffer.from(await file.arrayBuffer());
     console.log("Buffer created successfully");
 
