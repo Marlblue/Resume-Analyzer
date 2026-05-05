@@ -12,14 +12,18 @@ export async function POST(req: NextRequest) {
     const fileName = file.name.toLowerCase();
     console.log(`Parsing file: ${file.name} (${file.size} bytes)`);
 
-    // Polyfill DOMMatrix for pdf-parse (needed by pdfjs-dist in Node.js)
-    if (typeof global !== "undefined" && !global.DOMMatrix) {
+    // Polyfill browser APIs for pdf-parse (needed by pdfjs-dist v5+ in Node.js)
+    if (typeof global !== "undefined") {
       try {
-        const { DOMMatrix } = await import("@napi-rs/canvas");
-        (global as any).DOMMatrix = DOMMatrix;
-        console.log("DOMMatrix polyfilled successfully");
+        const canvas = await import("@napi-rs/canvas");
+        (global as any).DOMMatrix = global.DOMMatrix || canvas.DOMMatrix;
+        (global as any).DOMPoint = global.DOMPoint || canvas.DOMPoint;
+        (global as any).DOMRect = global.DOMRect || canvas.DOMRect;
+        (global as any).ImageData = global.ImageData || canvas.ImageData;
+        (global as any).Image = global.Image || canvas.Image;
+        console.log("Canvas polyfills applied successfully");
       } catch (e) {
-        console.warn("Failed to polyfill DOMMatrix from @napi-rs/canvas:", e);
+        console.warn("Failed to polyfill canvas APIs:", e);
       }
     }
 
