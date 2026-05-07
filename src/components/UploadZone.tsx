@@ -123,6 +123,15 @@ export default function UploadZone({ onFileSelect, disabled }: UploadZoneProps) 
           <p className="upload-zone-hint">PDF atau DOCX · Maks 5MB</p>
         </>
       )}
+      <div style={{ marginTop: "1.5rem" }}>
+        <p className="upload-zone-hint" style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", fontSize: "0.7rem", opacity: 0.8 }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          100% Aman & Privat. File tidak disimpan di server.
+        </p>
+      </div>
     </div>
   );
 }

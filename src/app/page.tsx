@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Masthead from "@/components/Masthead";
 import UploadZone from "@/components/UploadZone";
 import LoadingState from "@/components/LoadingState";
@@ -22,6 +22,36 @@ export default function Home() {
   // Job match fields
   const [jobTitle, setJobTitle] = useState("");
   const [jobDescription, setJobDescription] = useState("");
+
+  // Load state from sessionStorage on mount
+  useEffect(() => {
+    const savedState = sessionStorage.getItem("resumeAnalyzerState");
+    if (savedState) {
+      try {
+        const parsed = JSON.parse(savedState);
+        setState(parsed.state);
+        setResumeText(parsed.resumeText);
+        setFileName(parsed.fileName);
+        setResult(parsed.result);
+        setJobTitle(parsed.jobTitle || "");
+        setJobDescription(parsed.jobDescription || "");
+      } catch (e) {
+        console.error("Failed to parse saved state", e);
+      }
+    }
+  }, []);
+
+  // Save state to sessionStorage on change
+  useEffect(() => {
+    if (state !== "idle" && state !== "analyzing") {
+      sessionStorage.setItem(
+        "resumeAnalyzerState",
+        JSON.stringify({ state, resumeText, fileName, result, jobTitle, jobDescription })
+      );
+    } else if (state === "idle") {
+      sessionStorage.removeItem("resumeAnalyzerState");
+    }
+  }, [state, resumeText, fileName, result, jobTitle, jobDescription]);
 
   const handleFileSelect = useCallback(async (file: File) => {
     try {
@@ -120,6 +150,50 @@ export default function Home() {
         }, 1000);
       }, 500);
     }
+  }, [result, fileName]);
+
+  const handleMarkdownExport = useCallback(() => {
+    if (!result) return;
+    
+    let md = `# Hasil Analisis Resume\n\n`;
+    if (fileName) md += `**File:** ${fileName}\n\n`;
+    md += `## Skor ATS: ${result.score}/100\n\n`;
+    md += `${result.summary}\n\n`;
+    
+    md += `## Analisis per Bagian\n\n`;
+    result.sections.forEach(sec => {
+      md += `### ${sec.name} (${sec.status})\n`;
+      md += `${sec.feedback}\n\n`;
+    });
+    
+    md += `## Analisis Keyword\n\n`;
+    md += `**Ditemukan:**\n${result.keywords.present.map(k => `- ${k}`).join('\n')}\n\n`;
+    md += `**Tidak Ditemukan:**\n${result.keywords.missing.map(k => `- ${k}`).join('\n')}\n\n`;
+    
+    md += `## Saran Penulisan Ulang\n\n`;
+    result.rewriteSuggestions.forEach(s => {
+      md += `### ${s.section}\n`;
+      md += `**Sebelum:**\n> ${s.before}\n\n`;
+      md += `**Sesudah:**\n> ${s.after}\n\n`;
+      md += `*Mengapa:* ${s.reason}\n\n`;
+    });
+
+    if (result.jobMatch) {
+      md += `## Kecocokan Pekerjaan\n\n`;
+      md += `**Skor:** ${result.jobMatch.score}/100\n\n`;
+      md += `${result.jobMatch.verdict}\n\n`;
+      md += `**Skill Gap:**\n${result.jobMatch.skillGaps.map(g => `- ${g}`).join('\n')}\n\n`;
+    }
+
+    const blob = new Blob([md], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Analysis_${fileName ? fileName.replace(/\.[^/.]+$/, "") : "Resume"}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }, [result, fileName]);
 
   const handleReset = useCallback(() => {
@@ -253,7 +327,10 @@ export default function Home() {
               </h2>
               <div className="btn-group">
                 <button className="btn" onClick={handleExport} id="btn-export">
-                  Print / Save as PDF
+                  Print / Save PDF
+                </button>
+                <button className="btn" onClick={handleMarkdownExport} id="btn-export-md">
+                  Download MD
                 </button>
                 <button
                   className="btn"
