@@ -15,9 +15,9 @@ export async function POST(req: NextRequest) {
     if (fileName.endsWith(".pdf")) {
       // Dynamic imports: worker MUST be imported before pdf-parse
       // to polyfill DOMMatrix for serverless environments (Vercel)
-      // @ts-expect-error -- pdf-parse v2 types not in @types/pdf-parse
+      // @ts-ignore -- pdf-parse v2 types not in @types/pdf-parse
       const { CanvasFactory } = await import("pdf-parse/worker");
-      // @ts-expect-error -- pdf-parse v2 types not in @types/pdf-parse
+      // @ts-ignore -- pdf-parse v2 types not in @types/pdf-parse
       const { PDFParse } = await import("pdf-parse");
       const parser = new PDFParse({ data: buffer, CanvasFactory });
       const result = await parser.getText();
