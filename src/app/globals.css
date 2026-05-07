@@ -209,6 +209,15 @@ hr.accent {
   letter-spacing: -0.03em;
   color: var(--fg);
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.masthead-logo {
+  width: 1.8rem;
+  height: 1.8rem;
+  flex-shrink: 0;
 }
 
 .masthead-date {
@@ -269,12 +278,7 @@ hr.accent {
   letter-spacing: 0.05em;
 }
 
-.upload-zone input[type="file"] {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  cursor: pointer;
-}
+
 
 /* ─── Raw Text Preview ─── */
 .raw-preview {

@@ -75,6 +75,12 @@ export default function UploadZone({ onFileSelect, disabled }: UploadZoneProps) 
     if (files && files.length > 0) {
       processFile(files[0]);
     }
+    // Reset value so the same file can be re-selected
+    e.target.value = "";
+  };
+
+  const handleClick = () => {
+    inputRef.current?.click();
   };
 
   return (
@@ -84,7 +90,7 @@ export default function UploadZone({ onFileSelect, disabled }: UploadZoneProps) 
       onDragLeave={handleDragOut}
       onDragOver={handleDrag}
       onDrop={handleDrop}
-      onClick={() => inputRef.current?.click()}
+      onClick={handleClick}
       style={{ opacity: disabled ? 0.5 : 1, pointerEvents: disabled ? "none" : "auto" }}
       id="upload-zone"
       role="button"
@@ -99,6 +105,7 @@ export default function UploadZone({ onFileSelect, disabled }: UploadZoneProps) 
         onChange={handleChange}
         disabled={disabled}
         id="file-input"
+        style={{ display: "none" }}
       />
       {error ? (
         <>
