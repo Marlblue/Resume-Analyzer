@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 
 const stages = [
-  "Mengekstrak teks dokumen...",
-  "Mengevaluasi format ATS...",
-  "Menganalisis keyword industri...",
-  "Menyusun saran perbaikan AI...",
+  "Membaca CV...",
+  "Menganalisis struktur...",
+  "Mengevaluasi kata kunci...",
+  "Menyusun laporan...",
 ];
 
 export default function LoadingState() {
